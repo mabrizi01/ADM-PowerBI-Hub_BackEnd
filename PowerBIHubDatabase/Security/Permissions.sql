@@ -1,0 +1,6 @@
+﻿GRANT CONNECT TO [ADMPowerBIHub];
+
+
+GO
+GRANT EXECUTE TO [ADMPowerBIHub];
+
