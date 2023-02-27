@@ -1,6 +1,6 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "POWERBI_APP_DB_CONNECTION": "Server=tcp:mngenvmcap203777-sqlserver001.database.windows.net,1433;Initial Catalog=powerbihub001;Persist Security Info=False;User ID=ADMPowerBIHub;Password=1231!#ASDF!a;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;"
+    "POWERBI_APP_DB_CONNECTION": "Server=tcp:mngenvmcap203777-sqlserver001.database.windows.net,1433;Initial Catalog=powerbihub001;Persist Security Info=False;User ID=;Password=;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;"
   }
 }
