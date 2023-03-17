@@ -4,11 +4,21 @@
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.0" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
+    <Compile Remove="Test.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GetPowerBIReports.Data\GetPowerBIReports.Data.csproj" />
+    <None Include="Test.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.0" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
+    <PackageReference Include="Microsoft.PowerBI.Api" Version="4.13.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GetPowerBIReports.Data\GetPowerBIReports.Data.csproj">
+      <Private>True</Private>
+      <CopyLocalSatelliteAssemblies>True</CopyLocalSatelliteAssemblies>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

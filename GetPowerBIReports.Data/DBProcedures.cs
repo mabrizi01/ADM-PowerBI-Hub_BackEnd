@@ -9,6 +9,8 @@ using System.Configuration;
 using Azure;
 using System.Data;
 using Newtonsoft.Json;
+using System.Xml.Linq;
+using System.Reflection.PortableExecutable;
 
 
 namespace GetPowerBIReports.Data
@@ -49,29 +51,9 @@ namespace GetPowerBIReports.Data
                     {
                         while (reader.Read())
                         {
-                            PowerBiReport report = new PowerBiReport()
-                            {
-                                PowerBIReportID = ((Guid)reader["PowerBIReportID"]).ToString(),
-                                TenantID = ((Guid)reader["TenantID"]).ToString(),
-                                GroupId = ((Guid)reader["WorkspaceID"]).ToString(),
-                                ReportId = ((Guid)reader["ReportID"]).ToString(),
-                                CreationDate = ((DateTime)reader["CreationDate"]).ToString(),
-                                Author = (string)reader["Author"],
-                                Description = (string)reader["Description"],
-                                Email= (string)reader["Upn"],
-                                Name = (string)reader["Name"],
-                                Param1 = reader["Param1"] as string,
-                                Param2 = reader["Param2"] as string,
-                                Param3 = reader["Param3"] as string,
-                                Param4 = reader["Param4"] as string,
-                                Param5 = reader["Param5"] as string,
-
-
-                            };
+                            PowerBiReport report = report = GetReportByReader(reader);
                             reportList.Add(report);
                         }
-                        
-
                     }
                 }
             }
@@ -84,10 +66,67 @@ namespace GetPowerBIReports.Data
             return reportList;
         }
 
+        public PowerBiReport GetReport(string powerBIReportId)
+        {
+            PowerBiReport report = null;
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    SqlCommand sql_cmnd = new SqlCommand("usp_GetReport", conn);
+                    sql_cmnd.CommandType = CommandType.StoredProcedure;
+                    sql_cmnd.Parameters.AddWithValue("@powerBIReportId", SqlDbType.UniqueIdentifier).Value = Guid.Parse(powerBIReportId);
+                    
+
+
+                    using (var reader = sql_cmnd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            report = GetReportByReader(reader);
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                //Log somewhere
+                throw;
+            }
+
+            return report;
+        }
+
+        private PowerBiReport GetReportByReader(SqlDataReader reader)
+        {
+            PowerBiReport report = new PowerBiReport()
+            {
+                PowerBIReportID = ((Guid)reader["PowerBIReportID"]).ToString(),
+                TenantID = ((Guid)reader["TenantID"]).ToString(),
+                GroupId = ((Guid)reader["WorkspaceID"]).ToString(),
+                ReportId = ((Guid)reader["ReportID"]).ToString(),
+                DatasetId = reader.GetValue("DatasetId") is DBNull ? "" : reader.GetGuid("DatasetId").ToString(),
+                RLS = reader.GetValue("RLS") is DBNull ? false : reader.GetBoolean("RLS"),
+                CreationDate = ((DateTime)reader["CreationDate"]).ToString(),
+                Author = (string)reader["Author"],
+                Description = (string)reader["Description"],
+                Email = (string)reader["Upn"],
+                Name = (string)reader["Name"],
+                Param1 = reader["Param1"] as string,
+                Param2 = reader["Param2"] as string,
+                Param3 = reader["Param3"] as string,
+                Param4 = reader["Param4"] as string,
+                Param5 = reader["Param5"] as string,
+            };
+
+            return report;
+        }
+
         public PowerBiIdentity GetReportIdentity(string upnCaller, 
             string upnRequested,
-            string workspaceId,
-            string reportId)
+            string powerBIReportId)
         {
             PowerBiIdentity identity = null;
 
@@ -101,9 +140,8 @@ namespace GetPowerBIReports.Data
                     sql_cmnd.CommandType = CommandType.StoredProcedure;
                     sql_cmnd.Parameters.AddWithValue("@upnCaller", SqlDbType.NVarChar).Value = upnCaller;
                     sql_cmnd.Parameters.AddWithValue("@upnRequested", SqlDbType.NVarChar).Value = upnRequested;
-                    sql_cmnd.Parameters.AddWithValue("@workspaceId", SqlDbType.UniqueIdentifier).Value = Guid.Parse(workspaceId);
-                    sql_cmnd.Parameters.AddWithValue("@reportId", SqlDbType.UniqueIdentifier).Value = Guid.Parse(reportId);
-
+                    sql_cmnd.Parameters.AddWithValue("@powerBIReportID", SqlDbType.UniqueIdentifier).Value = Guid.Parse(powerBIReportId);
+                    
                     using (var reader = sql_cmnd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -131,63 +169,5 @@ namespace GetPowerBIReports.Data
     }
 
 
-    public class PowerBiReport
-    {
-        [JsonProperty(PropertyName = "powerBIReportID")]
-        public string PowerBIReportID { get; set; }
 
-        [JsonProperty(PropertyName = "tenantID")]
-        public string TenantID { get; set; }
-
-        [JsonProperty(PropertyName = "email")]
-        public string Email { get; set; }
-
-        [JsonProperty(PropertyName = "creationDate")]
-        public string CreationDate { get; set; }
-
-        [JsonProperty(PropertyName = "name")]
-        public string Name { get; set; }
-
-        [JsonProperty(PropertyName = "author")]
-        public string Author { get; set; }
-
-        [JsonProperty(PropertyName = "description")]
-        public string Description { get; set; }
-
-        [JsonProperty(PropertyName = "reportId")]
-        public string ReportId { get; set; }
-
-        [JsonProperty(PropertyName = "groupId")]
-        public string GroupId { get; set; }
-
-        [JsonProperty(PropertyName = "param1")]
-        public string? Param1 { get; set; }
-
-        [JsonProperty(PropertyName = "param2")]
-        public string? Param2 { get; set; }
-
-        [JsonProperty(PropertyName = "param3")]
-        public string? Param3 { get; set; }
-
-        [JsonProperty(PropertyName = "param4")]
-        public string? Param4 { get; set; }
-
-        [JsonProperty(PropertyName = "param5")]
-        public string? Param5 { get; set; }
-
-    }
-
-    public class PowerBiIdentity
-    {
-        [JsonProperty(PropertyName = "tenantID")]
-        public string TenantID { get; set; }
-
-
-        [JsonProperty(PropertyName = "clientID")]
-        public string? ClientID { get; set; }
-
-        [JsonProperty(PropertyName = "secret")]
-        public string? Secret { get; set; }
-
-    }
 }

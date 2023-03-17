@@ -3,7 +3,7 @@
 -- Create Date: <Create Date, , >
 -- Description: <Description, , >
 -- =============================================
-CREATE PROCEDURE usp_GetReportsByUser
+CREATE PROCEDURE [dbo].[usp_GetReportsByUser]
 (
     -- Add the parameters for the stored procedure here
     @upnCaller as nvarchar(50),
@@ -35,4 +35,5 @@ BEGIN
 		inner join [dbo].[ReportIdentity] ri
 			on prv.[ReportIdentityID] = ri.[ReportIdentityID]
 	WHERE prv.Upn = @upn
+	order by pr.name
 END
